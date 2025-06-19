@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memori - A Unified Context Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Font configuration */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        @media (max-width: 640px) {
+            .container { padding-left: 1rem; padding-right: 1rem; }
+        }
+        
+        /* Custom scrollbar for better UX */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+        
+        /* Line clamp utilities */
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-6 {
+            display: -webkit-box;
+            -webkit-line-clamp: 6;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Smooth transitions */
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Memory card hover effect */
+        .memory-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Memory View Modal -->
+    <div id="memoryViewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-2xl font-bold" id="modalMemoryTitle">Memory Details</h2>
+                <button onclick="closeMemoryViewModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalMemoryContent"></div>
+        </div>
+    </div>
+
+    <!-- Edit Memory Modal -->
+    <div id="editMemoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-2xl font-bold">Edit Memory</h2>
+                <button onclick="closeEditMemoryModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="editMemoryId">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="editMemoryContent">Memory Content</label>
+                    <textarea id="editMemoryContent" 
+                        name="editMemoryContent"
+                        rows="6" 
+                        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                        placeholder="Enter your memory content here..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="editMemoryCategory">Category</label>
+                    <input type="text" 
+                        id="editMemoryCategory" 
+                        name="editMemoryCategory"
+                        placeholder="e.g., Work, Personal, Study" 
+                        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="editMemoryClient">Client</label>
+                    <input type="text" 
+                        id="editMemoryClient" 
+                        name="editMemoryClient"
+                        placeholder="e.g., ChatGPT, Claude, Gemini" 
+                        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="editMemoryPrompt">Source Prompt (optional)</label>
+                    <input type="text" 
+                        id="editMemoryPrompt" 
+                        name="editMemoryPrompt"
+                        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button onclick="closeEditMemoryModal()" 
+                    class="px-6 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button onclick="updateMemory()" 
+                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+                    Update Memory
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="mb-8">
+            <div class="flex items-center space-x-3 mb-2">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text font-inter">Memori</h1>
+            </div>
+            <p class="text-gray-600 text-lg font-inter">A Unified Context Hub for AI Conversations & Knowledge</p>
+            <p class="text-sm text-gray-500 mt-1">Seamlessly store, organize, and retrieve context across all your AI interactions</p>
+        </header>
+
+        <!-- Create Memory Modal -->
+        <div id="createMemoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+            <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
+                <h2 class="text-2xl font-bold mb-4">Create New Memory</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Memory Content</label>
+                        <textarea id="newMemoryContent" rows="4" 
+                            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Category</label>
+                        <input type="text" id="newMemoryCategory" placeholder="e.g., Work, Personal, Study" 
+                            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Client</label>
+                        <input type="text" id="newMemoryClient" placeholder="e.g., ChatGPT, Claude, Gemini" 
+                            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Source Prompt (optional)</label>
+                        <input type="text" id="newMemoryPrompt" 
+                            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button onclick="closeCreateMemoryModal()" 
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button onclick="saveNewMemory()" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        Save Memory
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <button onclick="showCreateMemoryModal()" 
+                    class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create Memory
+                </button>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex-grow flex gap-4">
+                    <input type="text" id="searchInput" placeholder="Search memories..." 
+                        class="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        onkeyup="handleSearchInput(event)">
+                    <select id="categoryFilter" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        onchange="handleCategoryChange()">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="memoriesContainer">
+            <!-- Memory cards will be inserted here -->
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-full">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script>
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            }
+        }
+
+        function formatDate(timestamp) {
+            return new Date(timestamp).toLocaleString();
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 
+                ${isError ? 'bg-red-600' : 'bg-gray-800'} text-white`;
+            
+            toastMessage.textContent = message;
+            toast.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateY(120%)';
+            }, 3000);
+        }
+
+        function createMemoryCard(memory) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer h-[300px] flex flex-col';
+            
+            const category = memory.metadata?.category || 'Uncategorized';
+            const client = memory.metadata?.client || 'Unknown Client';
+            const timestamp = memory.metadata?.timestamp ? formatDate(memory.metadata.timestamp) : 'Unknown Time';
+            const sourcePrompt = memory.metadata?.sourcePrompt;
+            
+            // Store the full memory data as a data attribute
+            card.setAttribute('data-memory', JSON.stringify(memory));
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        ${category}
+                    </span>
+                    <span class="text-gray-500 text-sm">
+                        <i class="fas fa-robot mr-1"></i> ${client}
+                    </span>
+                </div>
+                <div class="flex-grow overflow-hidden mb-2">
+                    <p class="text-gray-800 line-clamp-6 text-sm">${memory.text}</p>
+                    ${sourcePrompt ? `
+                        <div class="mt-2 text-xs text-gray-600 line-clamp-1">
+                            <strong>Source:</strong> ${sourcePrompt}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="flex justify-between items-center text-xs text-gray-500 mt-auto pt-2 border-t">
+                    <div>
+                        <i class="far fa-clock mr-1"></i> ${timestamp}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="event.stopPropagation(); handleEditClick(this)" 
+                            class="text-blue-500 hover:text-blue-700 p-1" 
+                            title="Edit"
+                            data-memory='${JSON.stringify(memory)}'>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); deleteMemory('${memory.id || memory.metadata?.id}')" 
+                            class="text-red-500 hover:text-red-700 p-1" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <span class="ml-2">
+                            ID: ${memory.id || memory.metadata?.id || 'Unknown'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            // Add click handler to show full content in modal
+            card.addEventListener('click', () => showMemoryViewModal(memory));
+            
+            return card;
+        }
+
+        function showMemoryViewModal(memory) {
+            const modal = document.getElementById('memoryViewModal');
+            const content = document.getElementById('modalMemoryContent');
+            
+            const category = memory.metadata?.category || 'Uncategorized';
+            const client = memory.metadata?.client || 'Unknown Client';
+            const timestamp = memory.metadata?.timestamp ? formatDate(memory.metadata.timestamp) : 'Unknown Time';
+            const sourcePrompt = memory.metadata?.sourcePrompt;
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                            ${category}
+                        </span>
+                        <span class="text-gray-600">
+                            <i class="fas fa-robot mr-1"></i> ${client}
+                        </span>
+                        <span class="text-gray-600">
+                            <i class="far fa-clock mr-1"></i> ${timestamp}
+                        </span>
+                        <span class="text-gray-600">
+                            ID: ${memory.id || memory.metadata?.id || 'Unknown'}
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <pre class="whitespace-pre-wrap text-gray-800 font-sans">${memory.text}</pre>
+                    </div>
+                    ${sourcePrompt ? `
+                        <div class="mt-4 text-gray-600">
+                            <strong>Source Prompt:</strong>
+                            <p class="mt-1 bg-gray-50 p-4 rounded-lg">${sourcePrompt}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function closeMemoryViewModal() {
+            const modal = document.getElementById('memoryViewModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        
+        async function loadMemories() {
+            try {
+                const response = await fetch('/api/memories');
+                const memories = await response.json();
+                
+                const container = document.getElementById('memoriesContainer');
+                container.innerHTML = '';
+                
+                // Collect unique categories
+                const categories = new Set();
+                
+                // Add masonry-like layout classes
+                container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr';
+                
+                memories.forEach(memory => {
+                    container.appendChild(createMemoryCard(memory));
+                    if (memory.metadata?.category) {
+                        categories.add(memory.metadata.category);
+                    }
+                });
+                
+                // Update category filter
+                const categoryFilter = document.getElementById('categoryFilter');
+                categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                Array.from(categories).sort().forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading memories:', error);
+                showToast('Failed to load memories', true);
+            }
+        }
+
+        async function searchMemories() {
+            const query = document.getElementById('searchInput').value.trim();
+            const category = document.getElementById('categoryFilter').value.trim();
+            
+            try {
+                let url = '/api/memories/search?';
+                const params = new URLSearchParams();
+                
+                if (query) {
+                    params.append('q', query);
+                }
+                if (category) {
+                    params.append('category', category);
+                }
+                
+                // If no search criteria, load all memories
+                const endpoint = (!query && !category) ? '/api/memories' : `/api/memories/search?${params}`;
+                const response = await fetch(endpoint);
+                const memories = await response.json();
+                
+                const container = document.getElementById('memoriesContainer');
+                container.innerHTML = '';
+                
+                if (memories.length === 0) {
+                    const message = query || category ? 
+                        'No memories found matching your search.' :
+                        'No memories found in the database.';
+                    
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-8 text-gray-500">
+                            ${message}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                memories.forEach(memory => {
+                    container.appendChild(createMemoryCard(memory));
+                });
+            } catch (error) {
+                console.error('Error searching memories:', error);
+                showToast('Failed to search memories', true);
+            }
+        }
+
+        // Debounced search function
+        const debouncedSearch = debounce(() => searchMemories(), 300);
+
+        function handleSearchInput(event) {
+            // If Enter is pressed, search immediately
+            if (event.key === 'Enter') {
+                searchMemories();
+            } else {
+                // For other keys, use debounced search
+                debouncedSearch();
+            }
+        }
+
+        function handleCategoryChange() {
+            // Category changes should trigger immediate search
+            const query = document.getElementById('searchInput').value.trim();
+            const category = document.getElementById('categoryFilter').value.trim();
+            
+            // Only search if we have a query or category
+            if (query || category) {
+                searchMemories();
+            } else {
+                // If no search criteria, load all memories
+                loadMemories();
+            }
+        }
+
+        function showCreateMemoryModal() {
+            const modal = document.getElementById('createMemoryModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCreateMemoryModal() {
+            const modal = document.getElementById('createMemoryModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            
+            // Clear form
+            document.getElementById('newMemoryContent').value = '';
+            document.getElementById('newMemoryCategory').value = '';
+            document.getElementById('newMemoryClient').value = '';
+            document.getElementById('newMemoryPrompt').value = '';
+        }
+
+        async function saveNewMemory() {
+            const content = document.getElementById('newMemoryContent').value.trim();
+            const category = document.getElementById('newMemoryCategory').value.trim();
+            const client = document.getElementById('newMemoryClient').value.trim();
+            const sourcePrompt = document.getElementById('newMemoryPrompt').value.trim();
+            
+            if (!content) {
+                showToast('Memory content cannot be empty', true);
+                return;
+            }
+            
+            try {
+                const timestamp = new Date().toISOString();
+                const id = `manual-${Date.now()}`;
+                
+                const metadata = {
+                    category: category || 'General',
+                    client: client || 'Manual Entry',
+                    timestamp: timestamp,
+                };
+                
+                if (sourcePrompt) {
+                    metadata.sourcePrompt = sourcePrompt;
+                }
+                
+                const response = await fetch('/api/memories/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: content,
+                        id: id,
+                        metadata: metadata
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to create memory');
+                }
+                
+                showToast('Memory created successfully');
+                closeCreateMemoryModal();
+                loadMemories();
+            } catch (error) {
+                console.error('Error creating memory:', error);
+                showToast('Failed to create memory', true);
+            }
+        }
+
+        async function deleteMemory(memoryId) {
+            if (!confirm('Are you sure you want to delete this memory? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/memories/${memoryId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete memory');
+                }
+                
+                showToast('Memory deleted successfully');
+                await loadMemories(); // Refresh the list
+            } catch (error) {
+                console.error('Error deleting memory:', error);
+                showToast('Failed to delete memory', true);
+            }
+        }
+
+        function editMemory(memory) {
+            const modal = document.getElementById('editMemoryModal');
+            
+            // Fill in the form with current values
+            document.getElementById('editMemoryId').value = memory.id || memory.metadata?.id;
+            document.getElementById('editMemoryContent').value = memory.text || '';
+            document.getElementById('editMemoryCategory').value = memory.metadata?.category || '';
+            document.getElementById('editMemoryClient').value = memory.metadata?.client || '';
+            document.getElementById('editMemoryPrompt').value = memory.metadata?.sourcePrompt || '';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditMemoryModal() {
+            const modal = document.getElementById('editMemoryModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        async function updateMemory() {
+            const memoryId = document.getElementById('editMemoryId').value;
+            const content = document.getElementById('editMemoryContent').value.trim();
+            const category = document.getElementById('editMemoryCategory').value.trim();
+            const client = document.getElementById('editMemoryClient').value.trim();
+            const sourcePrompt = document.getElementById('editMemoryPrompt').value.trim();
+            
+            if (!content) {
+                showToast('Memory content cannot be empty', true);
+                return;
+            }
+            
+            try {
+                const metadata = {
+                    category: category || 'General',
+                    client: client || 'Manual Entry',
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (sourcePrompt) {
+                    metadata.sourcePrompt = sourcePrompt;
+                }
+                
+                const response = await fetch(`/api/memories/${memoryId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: content,
+                        metadata: metadata
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to update memory');
+                }
+                
+                showToast('Memory updated successfully');
+                closeEditMemoryModal();
+                await loadMemories(); // Refresh the list
+            } catch (error) {
+                console.error('Error updating memory:', error);
+                showToast('Failed to update memory', true);
+            }
+        }
+
+        function handleEditClick(button) {
+            const memory = JSON.parse(button.getAttribute('data-memory'));
+            const modal = document.getElementById('editMemoryModal');
+            
+            // Fill in the form with current values
+            document.getElementById('editMemoryId').value = memory.id || memory.metadata?.id;
+            document.getElementById('editMemoryContent').value = memory.text || '';
+            document.getElementById('editMemoryCategory').value = memory.metadata?.category || '';
+            document.getElementById('editMemoryClient').value = memory.metadata?.client || '';
+            document.getElementById('editMemoryPrompt').value = memory.metadata?.sourcePrompt || '';
+            
+            // Make sure form inputs are enabled
+            document.getElementById('editMemoryContent').removeAttribute('disabled');
+            document.getElementById('editMemoryCategory').removeAttribute('disabled');
+            document.getElementById('editMemoryClient').removeAttribute('disabled');
+            document.getElementById('editMemoryPrompt').removeAttribute('disabled');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Focus on the content field
+            setTimeout(() => {
+                document.getElementById('editMemoryContent').focus();
+            }, 100);
+        }
+
+        // Make sure modals are properly initialized
+        document.addEventListener('DOMContentLoaded', function() {
+            const editModal = document.getElementById('editMemoryModal');
+            const createModal = document.getElementById('createMemoryModal');
+            const viewModal = document.getElementById('memoryViewModal');
+            
+            // Ensure modals are in the correct initial state
+            [editModal, createModal, viewModal].forEach(modal => {
+                if (modal) {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = [
+                document.getElementById('createMemoryModal'),
+                document.getElementById('editMemoryModal'),
+                document.getElementById('memoryViewModal')
+            ];
+            
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }
+            });
+        };
+
+        // Initial load
+        loadMemories();
+    </script>
+</body>
+</html>
