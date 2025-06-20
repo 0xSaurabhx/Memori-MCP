@@ -4,7 +4,7 @@ Memori is an open-source context management system that provides a modern web in
 
 
 ## Demo UI
-![image](https://github.com/user-attachments/assets/72bdff64-8bfe-4805-a55d-d66751ca3eaa)
+![47shots_so](https://github.com/user-attachments/assets/7ae588a6-28ef-4b1a-af5e-9d9e08c56074)
 
 
 ## Usage Demo
