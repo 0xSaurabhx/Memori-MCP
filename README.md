@@ -1,5 +1,11 @@
 # Memori - A Unified Context Hub for AI Conversations & Knowledge
 
+
+[<img alt="Static Badge" src="https://img.shields.io/badge/Install%20Memori-vs%20code-blue?style=flat">](https%3A%2F%2Finsiders.vscode.dev%2Fredirect%3Furl%3Dvscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22Memori%22%2C%22type%22%3A%20%22http%22%2C%22url%22%3A%22%22http%3A%2F%2Flocalhost%3A4444%2Fmcp%2Fsse%22%7D)
+<img alt="Static Badge" src="https://img.shields.io/badge/Status-Maintained-green?style=flat">
+<img alt="Static Badge" src="https://img.shields.io/badge/License-MIT-orange?style=flat">
+
+
 Memori is an open-source context management system that provides a modern web interface for managing, searching, and organizing AI conversation memories and knowledge. It uses advanced embedding techniques for semantic search and provides a complete CRUD interface for managing memory entries.
 
 
