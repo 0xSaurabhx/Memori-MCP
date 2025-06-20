@@ -2,6 +2,18 @@
 
 Memori is an open-source context management system that provides a modern web interface for managing, searching, and organizing AI conversation memories and knowledge. It uses advanced embedding techniques for semantic search and provides a complete CRUD interface for managing memory entries.
 
+
+## Demo UI
+![image](https://github.com/user-attachments/assets/72bdff64-8bfe-4805-a55d-d66751ca3eaa)
+
+
+## Usage Demo
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/71190f78-4828-40a1-b586-1053567aeb83" alt="Memori Logo" width="400" />
+</p>
+
+
 ## Features
 
 - 🧠 **Semantic Search**: Utilizes Ollama's embedding model for intelligent, context-aware memory retrieval
