@@ -27,6 +27,29 @@ Memori is an open-source context management system that provides a modern web in
 }
 ```
 
+<details>
+<summary><b>Installing on VS Code</b></summary>
+
+
+1. Create `.vscode` folder and create `mcp.json` with below content.
+
+```json
+{
+    "servers": {
+        "Memori": {
+            "type": "http",
+            "url": "http://localhost:4444/mcp/sse",
+        }
+    }
+}
+```
+
+You can find your Smithery key in the [Smithery.ai webpage](https://smithery.ai/server/@upstash/context7-mcp).
+
+</details>
+
+
+
 ## Prerequisites
 
 - Python 3.11+
